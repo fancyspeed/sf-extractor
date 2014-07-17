@@ -1,5 +1,5 @@
 clone from https://github.com/amumu/cx-extractor
 
-Added python version
+1. Added python version of cx-extractor
 
-Added <b>sfextractor</b>, a new extractor according dynamic block segmentation and statistics.
+2. Added <b>sfextractor</b>, a new extractor according to dynamic block segmentation and statistics.
