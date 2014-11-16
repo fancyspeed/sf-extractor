@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-# coding: utf-8
+#coding: utf-8
+#author: zuotaoliu@126.com
 import re
 import math
 import time
@@ -13,21 +14,16 @@ import time
 # 6. merge it's neighbours
 
 class SFExtractor(object):
-    # 每个窗口包含的行数
-    block_width = 3
-    # 当待抽取的网页正文中遇到成块的新闻标题未剔除时，只要增大此阈值即可
-    # 阈值增大，准确率提升，召回率下降；值变小，噪声会大，但可以保证抽到只有一句话的正文
+    # mininum size of a valid block
     min_block_len = 10
 
+    # meta data
     _title = re.compile(r'<title>(.*?)</title>', re.I|re.S)
     _title2 = re.compile(r'<h1>(.*?)</h1>', re.I|re.S)
     _description = re.compile(r'<\s*meta\s*name=\"?Description\"?\s+content=\"?(.*?)\"?\s*>', re.I|re.S)
     _keywords = re.compile(r'<\s*meta\s*name=\"?Keywords\"?\s+content=\"?(.*?)\"?\s*>', re.I|re.S)
-
     # special cases
     _annotation_cases = [re.compile(r'<!-- 正文开始 -->(.*?)<!-- 正文结束 -->'),
-                     ]
-    
     # special chars
     _special_list = [(re.compile(r'&quot;', re.I|re.S), '\"'),
                      (re.compile(r'&amp;', re.I|re.S), '&'),
@@ -64,8 +60,9 @@ class SFExtractor(object):
     _spaces = re.compile(r'[ \t]+')
     #_multi = re.compile(r'\n+')
     _multi = re.compile(r'\n|\r|\t')
-
+    # punction
     _punc = re.compile(r',|\?|!|:|;|。|，|？|！|：|；|《|》|%|、|“|”', re.I|re.S)
+    # stop words, specific for chinese pages
     _stopword = re.compile(r'备\d+号|Copyright\s*©|版权所有|all rights reserved|广告|推广|回复|评论|关于我们|链接|About|广告|下载|href=|本网|言论|内容合作|法律法规|原创|许可证|营业执照|合作伙伴|备案', re.I|re.S)
 
 
