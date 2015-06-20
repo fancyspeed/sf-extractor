@@ -10,8 +10,8 @@ This project contains 2 Html Conent Extractors:
   
   2.3. get blocks
   
-  2.4. stat each block's text/stopword/link/punctuation densities
+  2.4. evaluate blocks via text/stopword/link/punctuation densities
   
   2.5. get the best block
   
-  2.6. merge it's neighbours
+  2.6. merge it's neighbours iteratively
