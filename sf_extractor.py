@@ -4,6 +4,7 @@
 import re
 import math
 import time
+import urllib
 
 # smooth and fast html extractor
 # 1. remove newline characters
@@ -23,7 +24,7 @@ class SFExtractor(object):
     _description = re.compile(r'<\s*meta\s*name=\"?Description\"?\s+content=\"?(.*?)\"?\s*>', re.I|re.S)
     _keywords = re.compile(r'<\s*meta\s*name=\"?Keywords\"?\s+content=\"?(.*?)\"?\s*>', re.I|re.S)
     # special cases
-    _annotation_cases = [re.compile(r'<!-- 正文开始 -->(.*?)<!-- 正文结束 -->'),
+    _annotation_cases = [re.compile(r'<!-- 正文开始 -->(.*?)<!-- 正文结束 -->'),]
     # special chars
     _special_list = [(re.compile(r'&quot;', re.I|re.S), '\"'),
                      (re.compile(r'&amp;', re.I|re.S), '&'),
@@ -279,6 +280,25 @@ class SFExtractor(object):
             self.content = self.extract_content(text, _thres or self.min_block_len)
         return [self.title, self.content, self.keywords, self.desc]
 
+def download_and_normalize(url):
+    raw_html = urllib.urlopen(url).read()
+    if not raw_html:
+        return ''
+    best_match = ('', 0)
+    for charset in ['utf-8', 'gbk', 'big5', 'gb18030']:
+        try:
+            unicode_html = raw_html.decode(charset, 'ignore')
+            guess_html = unicode_html.encode(charset)
+            if len(guess_html) == len(raw_html):
+                best_match = (charset, len(guess_html))
+                break
+            elif len(guess_html) > best_match[1]:
+                best_match = (charset, len(guess_html))
+        except: 
+            pass
+    raw_html = raw_html.decode(best_match[0], 'ignore').encode('utf-8')
+    return raw_html
+
 def test():
     ext = SFExtractor()
 
@@ -293,12 +313,8 @@ def test():
         'http://blog.sina.com.cn/s/blog_673153e90101l8u8.html?tj=1',
         ]
 
-    import sys
-    sys.path.append('../py-crawler')
-    from spider_requests import UrlSpider
-    spider = UrlSpider()
     for url in urls:
-        raw_html, err = spider.download(url) 
+        raw_html = download_and_normalize(url)
         if raw_html:
             print '\nurl:', url
             start_time = time.time()
@@ -314,14 +330,10 @@ def test():
 
 def test_file(p_in):
     ext = SFExtractor()
-    import sys
-    sys.path.append('../py-crawler')
-    from spider_urllib2 import UrlSpider
-    spider = UrlSpider()
     for url in open(p_in):
         url = url.strip()
         if not url: continue
-        raw_html, err = spider.download(url) 
+        raw_html = download_and_normalize(url)
         if raw_html:
             print '\nurl:', url
             title, content, keywords, desc = ext.extract(raw_html)

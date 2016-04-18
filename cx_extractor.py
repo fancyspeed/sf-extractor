@@ -2,6 +2,7 @@
 # coding: utf-8
 import re
 import time
+import urllib
 
 class CXExtractor(object):
     # 每个窗口包含的行数
@@ -192,6 +193,25 @@ class CXExtractor(object):
         _content = self.extract_content(text, _thres or self.default_threshold)
         return [_title, _content, _keywords, _desc]
 
+def download_and_normalize(url):
+    raw_html = urllib.urlopen(url).read()
+    if not raw_html:
+        return ''
+    best_match = ('', 0)
+    for charset in ['utf-8', 'gbk', 'big5', 'gb18030']:
+        try:
+            unicode_html = raw_html.decode(charset, 'ignore')
+            guess_html = unicode_html.encode(charset)
+            if len(guess_html) == len(raw_html):
+                best_match = (charset, len(guess_html))
+                break
+            elif len(guess_html) > best_match[1]:
+                best_match = (charset, len(guess_html))
+        except: 
+            pass
+    raw_html = raw_html.decode(best_match[0], 'ignore').encode('utf-8')
+    return raw_html
+
 def test():
     ext = CXExtractor()
 
@@ -205,12 +225,8 @@ def test():
         'http://news.cnhubei.com/xw/yl/201404/t2894467_5.shtml',
         ]
 
-    import sys
-    sys.path.append('../py-crawler')
-    from spider_urllib2 import UrlSpider
-    spider = UrlSpider()
     for url in urls:
-        raw_html, err = spider.download(url) 
+        raw_html = download_and_normalize(url)
         if raw_html:
             print 'url:', url
             start_time = time.time()
@@ -222,18 +238,14 @@ def test():
             print 'content:', content
         else:
             print 'url:', url
-            print 'error_msg:', err 
+
 
 def test_file(p_in):
     ext = CXExtractor()
-    import sys
-    sys.path.append('../py-crawler')
-    from spider_urllib2 import UrlSpider
-    spider = UrlSpider()
     for url in open(p_in):
         url = url.strip()
         if not url: continue
-        raw_html, err = spider.download(url) 
+        raw_html = download_and_normalize(url)
         if raw_html:
             print '\nurl:', url
             title, content, keywords, desc = ext.extract(raw_html)
